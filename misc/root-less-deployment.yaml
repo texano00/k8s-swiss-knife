@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: root-less-buxybox-deployment
+  namespace: test
+  labels:
+    app: root-less-buxybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: root-less-buxybox
+  template:
+    metadata:
+      labels:
+        app: root-less-buxybox
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+
+      containers:
+      - name: root-less-buxybox
+        image: joeshaw/busybox-nonroot
+        command: ['sh', '-c', 'tail -f /dev/stdout']

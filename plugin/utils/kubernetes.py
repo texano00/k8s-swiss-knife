@@ -37,13 +37,13 @@ class Kubernetes:
         self.v1_apps = client.AppsV1Api()
         self.v1_core = client.CoreV1Api()
 
-    def get_pods(self, namespace):
+    def get_pods(self, namespace, field_selector=''):
         """get_pods"""
-        pods = self.v1_core.list_namespaced_pod(namespace=namespace)
+        pods = self.v1_core.list_namespaced_pod(namespace=namespace, field_selector=field_selector)
         return pods
     
 
-    def exec_commands(self, namespace, name, command):
+    def exec_commands(self, namespace, pod_name, container_name, command):
         # Calling exec and waiting for response
         exec_command = [
             '/bin/sh',
@@ -55,52 +55,15 @@ class Kubernetes:
         resp = ""
         try:
             resp = stream(self.v1_core.connect_get_namespaced_pod_exec,
-                        name,
+                        pod_name,
                         namespace,
+                        container=container_name,
                         command=exec_command,
                         stderr=True, stdin=False,
                         stdout=True, tty=False)
+            if('not found' in resp or '' == resp):
+                raise Exception
         except Exception as e:
-            print("ok")
             err = True
 
-        print(resp)
-
-
         return resp, err
-
-
-        # # Calling exec interactively
-        # exec_command = ['/bin/sh']
-        # resp = stream(api_instance.connect_get_namespaced_pod_exec,
-        #             name,
-        #             namespace,
-        #             command=exec_command,
-        #             stderr=True, stdin=True,
-        #             stdout=True, tty=False,
-        #             _preload_content=False)
-        # commands = [
-        #     "echo This message goes to stdout",
-        #     "echo \"This message goes to stderr\" >&2",
-        # ]
-
-        # while resp.is_open():
-        #     resp.update(timeout=1)
-        #     if resp.peek_stdout():
-        #         print(f"STDOUT: {resp.read_stdout()}")
-        #     if resp.peek_stderr():
-        #         print(f"STDERR: {resp.read_stderr()}")
-        #     if commands:
-        #         c = commands.pop(0)
-        #         print(f"Running command... {c}\n")
-        #         resp.write_stdin(c + "\n")
-        #     else:
-        #         break
-
-        # resp.write_stdin("date\n")
-        # sdate = resp.readline_stdout(timeout=3)
-        # print(f"Server date command returns: {sdate}")
-        # resp.write_stdin("whoami\n")
-        # user = resp.readline_stdout(timeout=3)
-        # print(f"Server user is: {user}")
-        # resp.close()
