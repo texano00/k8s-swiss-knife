@@ -58,7 +58,8 @@ jobs:
         run: |
           pyinstaller -F --path venv/lib64/python3.10/site-packages kubectl-swissknife.py
         
-      - name: Check
-        run: |
-            ls
-            ls dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+            name: "kubectl-swissknife-${{ steps.metadata.outputs.version }}"
+            path: dist/kubectl-swissknife
