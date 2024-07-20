@@ -59,7 +59,15 @@ jobs:
           pyinstaller -F --path venv/lib64/python3.10/site-packages kubectl-swissknife.py
         
 
-      - uses: actions/upload-artifact@v4
+    #   - uses: actions/upload-artifact@v4
+    #     with:
+    #         name: "kubectl-swissknife-${{ steps.metadata.outputs.version }}"
+    #         path: "${{ github.workspace }}/plugin/dist/kubectl-swissknife"
+
+      - name: Release with Notes
+        uses: softprops/action-gh-release@v2
         with:
-            name: "kubectl-swissknife-${{ steps.metadata.outputs.version }}"
-            path: "${{ github.workspace }}/plugin/dist/kubectl-swissknife"
+            tag_name: ${{ steps.metadata.outputs.version }}"
+            files: ${{ github.workspace }}/plugin/dist/kubectl-swissknife
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
