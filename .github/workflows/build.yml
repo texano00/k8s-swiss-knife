@@ -60,5 +60,5 @@ jobs:
         
       - name: Check
         run: |
-            ll
-            ll dist
+            ls
+            ls dist
