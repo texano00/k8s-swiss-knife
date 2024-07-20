@@ -11,7 +11,8 @@ kubectl swissknife root_less_checker [-n <namespace>]
 # Install
 ```
 LATEST_TAG=$(curl https://api.github.com/repos/texano00/k8s-swiss-knife/tags | jq -r '.[0].name') \
-wget "https://github.com/texano00/k8s-swiss-knife/releases/download/${LATEST_TAG}/kubectl-swissknife" \
+wget -O kubectl-swissknife 
+"https://github.com/texano00/k8s-swiss-knife/releases/download/${LATEST_TAG}/kubectl-swissknife" \
 sudo mv kubectl-swissknife /usr/local/bin
 ```
 
