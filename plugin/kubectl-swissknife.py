@@ -7,12 +7,10 @@ def version(args):
     print(f.read())
 
 def root_less_checker_emoji(is_root_less):
-    if(is_root_less=="N/A"):
-        return "❓"
-    
-    if(is_root_less == False):
+    if is_root_less=="N/A":
+        return "❓"  
+    if is_root_less == False:
         return "⚠️"
-    
     return "✅"
 
 def root_less_checker(args):
@@ -26,11 +24,10 @@ def root_less_checker(args):
             for key,container in enumerate(pod.spec.containers):
                 is_root_less = "N/A"
                 is_started = pod.status.container_statuses[key].started
-                if(is_started):
+                if is_started:
                     output,err = kubernetes.exec_commands(namespace, pod.metadata.name, container_name=container.name, command="whoami")
                     is_root_less = False if (output.strip() == "root") else True
                     is_root_less = "N/A" if err else is_root_less
-                
                 data_output.append([
                     namespace,
                     pod.metadata.name,
@@ -50,6 +47,7 @@ def command_two(arg1):
     print(f"Executing command_two with arg1={arg1}")
 
 def main():
+    """Main"""
     parser = argparse.ArgumentParser(description='k8s-SwissKnife. The utility you ever wanted.')
     subparsers = parser.add_subparsers(dest='command', required=False, help='Sub-command help')
 
@@ -63,9 +61,7 @@ def main():
     parser_two = subparsers.add_parser('command_two', help='TODO Stay tuned')
     parser_two.add_argument('arg1', type=str, help='Argument 1 for command_two')
 
-    args = vars(parser.parse_args())
-    
-    
+    args = vars(parser.parse_args()) 
     if args['command'] == 'root_less_checker':
         root_less_checker(args)
     elif args['command'] == 'version':
