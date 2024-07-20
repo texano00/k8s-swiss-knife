@@ -2,6 +2,13 @@
 k8s-swiss-knife is the k8s plugin you ever wanted.
 
 # Usage
+## help
+`kubectl swissknife -h `
+<img src=asset/helper.png>
+
+`kubectl swissknife root_less_checker -h`
+<img src=asset/root_less_checker_helper.png>
+
 ## root_less_checker
 ```
 kubectl swissknife root_less_checker [-n <namespace>]
@@ -10,9 +17,7 @@ kubectl swissknife root_less_checker [-n <namespace>]
 
 # Install
 ```
-LATEST_TAG=$(curl https://api.github.com/repos/texano00/k8s-swiss-knife/tags | jq -r '.[0].name') \
-wget -O kubectl-swissknife "https://github.com/texano00/k8s-swiss-knife/releases/download/${LATEST_TAG}/kubectl-swissknife" \
-sudo mv kubectl-swissknife /usr/local/bin
+LATEST_TAG=$(curl https://api.github.com/repos/texano00/k8s-swiss-knife/tags | jq -r '.[0].name') && wget -O kubectl-swissknife "https://github.com/texano00/k8s-swiss-knife/releases/download/$LATEST_TAG/kubectl-swissknife" && sudo install kubectl-swissknife /usr/bin
 ```
 
 # Development
