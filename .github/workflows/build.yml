@@ -62,4 +62,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
             name: "kubectl-swissknife-${{ steps.metadata.outputs.version }}"
-            path: dist/kubectl-swissknife
+            path: "${{ github.workspace }}/plugin/dist/kubectl-swissknife"
