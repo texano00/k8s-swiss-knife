@@ -1,6 +1,8 @@
 # k8s-swiss-knife
 k8s-swiss-knife is the k8s plugin you ever wanted.
 
+<img src=asset/k8s-swiss-knife-removebg.png width=300>
+
 # Usage
 ## help
 `kubectl swissknife -h `
