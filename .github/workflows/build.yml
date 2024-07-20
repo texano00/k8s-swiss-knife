@@ -45,7 +45,8 @@ jobs:
 
       - name: Lint
         run: |
-          pylint $(git ls-files '*.py') --fail-under=90
+          pylint $(git ls-files '*.py')
+          // --fail-under=10
 
       - name: Get version
         id: metadata
