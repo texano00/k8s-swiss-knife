@@ -17,6 +17,12 @@ kubectl swissknife root_less_checker [-n <namespace>]
 ```
 <img src=asset/root_less_checker.png>
 
+## oom_checker
+```
+kubectl swissknife oom_checker [-n <namespace>]
+```
+<img src=asset/oom_checker.png>
+
 # Install
 ```
 LATEST_TAG=$(curl https://api.github.com/repos/texano00/k8s-swiss-knife/tags | jq -r '.[0].name') && wget -O kubectl-swissknife "https://github.com/texano00/k8s-swiss-knife/releases/download/$LATEST_TAG/kubectl-swissknife" && sudo install kubectl-swissknife /usr/bin
@@ -27,6 +33,9 @@ LATEST_TAG=$(curl https://api.github.com/repos/texano00/k8s-swiss-knife/tags | j
 #! /bin/bash
 
 cd plugin
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
 pyinstaller -F --path venv/lib64/python3.10/site-packages kubectl-swissknife.py
 
