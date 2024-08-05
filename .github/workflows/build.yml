@@ -51,7 +51,7 @@ jobs:
       - name: Get version
         id: metadata
         run: |
-            version=$(cat .version)
+            version=$(grep "^VERSION" config.py | cut -d'=' -f2- | cut -d"'" -f2 )
             echo "version=${version}" >> $GITHUB_OUTPUT
 
       - name: Package

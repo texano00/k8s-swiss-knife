@@ -1,11 +1,10 @@
 import argparse
 import utils.kubernetes as k8s
 import utils.datatable as datatable
-
-_VERSION="0.1.0"
+from config import VERSION
 
 def version():
-    print(_VERSION)
+    print(VERSION)
 
 def root_less_checker_emoji(is_root_less):
     if is_root_less=="N/A":
@@ -17,7 +16,8 @@ def root_less_checker_emoji(is_root_less):
 def root_less_checker(args):
     """Handler for root_less_checker."""
     kubernetes = k8s.Kubernetes()
-    namespaces = [args['namespace']] if args['namespace'] else list(map(lambda item: item.metadata.name, kubernetes.get_namespaces().items))
+    namespaces = [args['namespace']] if args['namespace'] else ['default']
+    namespaces = list(map(lambda item: item.metadata.name, kubernetes.get_namespaces().items)) if args['all_namespaces'] else namespaces
     data_output = []
     for namespace in namespaces:
         pods = kubernetes.get_pods(namespace)
@@ -43,15 +43,17 @@ def root_less_checker(args):
     table = datatable.ColoredTable()
     table.display_table(data_output, headers)
 
-def oom_checker_emoji(last_termination_reason):
-    if last_termination_reason=="OOMKilled":
+def last_termination_reason_checker_emoji(last_termination_reason):
+    if last_termination_reason:
         return "⚠️"
     return "✅"
 
-def oom_checker(args):
-    """Handler for oom_checker."""
+def last_termination_reason_checker(args):
+    """Handler for last_termination_reason_checker."""
     kubernetes = k8s.Kubernetes()
-    namespaces = [args['namespace']] if args['namespace'] else list(map(lambda item: item.metadata.name, kubernetes.get_namespaces().items))
+    namespaces = [args['namespace']] if args['namespace'] else ['default']
+    namespaces = list(map(lambda item: item.metadata.name, kubernetes.get_namespaces().items)) if args['all_namespaces'] else namespaces
+
     data_output = []
     for namespace in namespaces:
         pods = kubernetes.get_pods(namespace)
@@ -64,7 +66,7 @@ def oom_checker(args):
                     pod.metadata.name,
                     container.name,
                     last_termination_reason,
-                    oom_checker_emoji(last_termination_reason)
+                    last_termination_reason_checker_emoji(last_termination_reason)
                 ])
     headers = ["Namespace", "Pod", "ContainerName", "LastTerminationReason", "Overall"]
 
@@ -81,18 +83,20 @@ def main():
     # Sub-parser for the first command
     parser_one = subparsers.add_parser('root_less_checker', help='Check rootless status of pods')
     parser_one.add_argument('--namespace', '-n', dest='namespace', type=str, help='Filter by namespace (optional, default to all namespaces)')
+    parser_one.add_argument('--all', '-A', dest='all_namespaces', help='All namespaces', action='store_true')
 
     # Sub-parser for the second command
-    parser_two = subparsers.add_parser('oom_checker', help='Check if pods have been restarted for OOM reason')
+    parser_two = subparsers.add_parser('last_termination_reason_checker', help='Check last termination reason of pods (ex. OOM reason). FS ❤️.')
     parser_two.add_argument('--namespace', '-n', dest='namespace', type=str, help='Filter by namespace (optional, default to all namespaces)')
+    parser_two.add_argument('--all', '-A', dest='all_namespaces', help='All namespaces', action='store_true')
 
     args = vars(parser.parse_args()) 
     if args['command'] == 'root_less_checker':
         root_less_checker(args)
     elif args['command'] == 'version':
         version()
-    elif args['command'] == 'oom_checker':
-        oom_checker(args)
+    elif args['command'] == 'last_termination_reason_checker':
+        last_termination_reason_checker(args)
 
 if __name__ == "__main__":
     main()
