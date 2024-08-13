@@ -60,15 +60,17 @@ def last_termination_reason_checker(args):
         for pod in pods.items:
             for key,container in enumerate(pod.spec.containers):
                 last_termination_reason = pod.status.container_statuses[key].last_state.terminated.reason if pod.status.container_statuses[key].last_state.terminated else ''
-                
+                last_termination_exit_code = pod.status.container_statuses[key].last_state.terminated.exit_code if pod.status.container_statuses[key].last_state.terminated else ''
+
                 data_output.append([
                     namespace,
                     pod.metadata.name,
                     container.name,
                     last_termination_reason,
+                    last_termination_exit_code,
                     last_termination_reason_checker_emoji(last_termination_reason)
                 ])
-    headers = ["Namespace", "Pod", "ContainerName", "LastTerminationReason", "Overall"]
+    headers = ["Namespace", "Pod", "ContainerName", "LastTerminationReason", "LastTerminationExitCode", "Overall"]
 
     table = datatable.ColoredTable()
     table.display_table(data_output, headers)
