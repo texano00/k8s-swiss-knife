@@ -43,13 +43,25 @@ def root_less_checker(args):
     table = datatable.ColoredTable()
     table.display_table(data_output, headers)
 
-def last_termination_reason_warning(last_termination_reason):
+def healthcheck_warning(container_status, pod):
+    last_termination_reason = container_status.last_state.terminated.reason if container_status.last_state.terminated else ''
+
     if last_termination_reason:
         return True, "⚠️"
+
+    if pod.status.phase not in ["Running", "Succeeded"]:
+        return True, "⚠️"  
+
     return False, "✅"
 
-def last_termination_reason_checker(args):
-    """Handler for last_termination_reason_checker."""
+def insert_newlines(string, every=30):
+    lines = []
+    for i in range(0, len(string), every):
+        lines.append(string[i:i+every])
+    return '\r'.join(lines)
+
+def healthcheck(args):
+    """Handler for healthcheck."""
     kubernetes = k8s.Kubernetes()
     namespaces = [args['namespace']] if args['namespace'] else ['default']
     namespaces = list(map(lambda item: item.metadata.name, kubernetes.get_namespaces().items)) if args['all_namespaces'] else namespaces
@@ -58,11 +70,23 @@ def last_termination_reason_checker(args):
     for namespace in namespaces:
         pods = kubernetes.get_pods(namespace)
         for pod in pods.items:
+            podHealth = "{phase} {reason} {message}".format(phase=pod.status.phase, reason=pod.status.reason if pod.status.reason else "", message=insert_newlines(pod.status.message) if pod.status.message else "")
+            # data_output.append([
+            #     namespace,
+            #     pod.metadata.name,
+            #     podHealth,
+            #     "-",
+            #     "-",
+            #     "-",
+            #     "-"
+            # ])
             for key,container in enumerate(pod.spec.containers):
-                last_termination_reason = pod.status.container_statuses[key].last_state.terminated.reason if pod.status.container_statuses[key].last_state.terminated else ''
-                last_termination_exit_code = pod.status.container_statuses[key].last_state.terminated.exit_code if pod.status.container_statuses[key].last_state.terminated else ''
-                last_termination_finished_at = pod.status.container_statuses[key].last_state.terminated.finished_at if pod.status.container_statuses[key].last_state.terminated else ''
-                warning, emoji = last_termination_reason_warning(last_termination_reason)
+                container_status = pod.status.container_statuses[key]
+                last_termination_reason = container_status.last_state.terminated.reason if container_status.last_state.terminated else ''
+                last_termination_exit_code = container_status.last_state.terminated.exit_code if container_status.last_state.terminated else ''
+                last_termination_finished_at = container_status.last_state.terminated.finished_at if container_status.last_state.terminated else ''
+                last_termination = "{reason} {exit_code} {finished_at}".format(reason=last_termination_reason, exit_code=last_termination_exit_code, finished_at=last_termination_finished_at)
+                warning, emoji = healthcheck_warning(container_status, pod)
 
                 if show_only_warnings and not warning:
                     continue
@@ -70,13 +94,13 @@ def last_termination_reason_checker(args):
                 data_output.append([
                     namespace,
                     pod.metadata.name,
-                    container.name,
-                    last_termination_reason,
-                    last_termination_exit_code,
-                    last_termination_finished_at,
+                    podHealth,
+                    container_status.name,
+                    True if container_status.state.running else False,
+                    last_termination,
                     emoji
                 ])
-    headers = ["Namespace", "Pod", "ContainerName", "LastTerminationReason", "LastTerminationExitCode", "LastTerminationFinishedAt", "Overall"]
+    headers = ["Namespace", "Pod", "PodHealth", "ContainerName", "isRunning", "LastTermination", "Overall"]
 
     table = datatable.ColoredTable()
     table.display_table(data_output, headers)
@@ -95,7 +119,7 @@ def main():
     parser_one.add_argument('--show-only-warnings', '-sow', dest='show_only_warnings', help='Show only warnings', action='store_true', default=False)
 
     # Sub-parser for the second command
-    parser_two = subparsers.add_parser('last_termination_reason_checker', help='Check last termination reason of pods (ex. OOM reason). FS ❤️.')
+    parser_two = subparsers.add_parser('healthcheck', help='Check last termination reason of pods (ex. OOM reason). FS ❤️.')
     parser_two.add_argument('--namespace', '-n', dest='namespace', type=str, help='Filter by namespace (optional, default to all namespaces)')
     parser_two.add_argument('--all', '-A', dest='all_namespaces', help='All namespaces', action='store_true')
     parser_two.add_argument('--show-only-warnings', '-sow', dest='show_only_warnings', help='Show only warnings', action='store_true', default=False)
@@ -105,8 +129,8 @@ def main():
         root_less_checker(args)
     elif args['command'] == 'version':
         version()
-    elif args['command'] == 'last_termination_reason_checker':
-        last_termination_reason_checker(args)
+    elif args['command'] == 'healthcheck':
+        healthcheck(args)
 
 if __name__ == "__main__":
     main()

@@ -17,11 +17,10 @@ kubectl swissknife root_less_checker [-n <namespace>]
 ```
 <img src=asset/root_less_checker.png>
 
-## oom_checker
+## healthcheck
 ```
-kubectl swissknife oom_checker [-n <namespace>]
+kubectl swissknife healthcheck [-n <namespace>]
 ```
-<img src=asset/oom_checker.png>
 
 # Install
 ```
