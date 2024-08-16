@@ -43,17 +43,17 @@ def root_less_checker(args):
     table = datatable.ColoredTable()
     table.display_table(data_output, headers)
 
-def last_termination_reason_checker_emoji(last_termination_reason):
+def last_termination_reason_warning(last_termination_reason):
     if last_termination_reason:
-        return "⚠️"
-    return "✅"
+        return True, "⚠️"
+    return False, "✅"
 
 def last_termination_reason_checker(args):
     """Handler for last_termination_reason_checker."""
     kubernetes = k8s.Kubernetes()
     namespaces = [args['namespace']] if args['namespace'] else ['default']
     namespaces = list(map(lambda item: item.metadata.name, kubernetes.get_namespaces().items)) if args['all_namespaces'] else namespaces
-
+    show_only_warnings = args['show_only_warnings']
     data_output = []
     for namespace in namespaces:
         pods = kubernetes.get_pods(namespace)
@@ -61,6 +61,11 @@ def last_termination_reason_checker(args):
             for key,container in enumerate(pod.spec.containers):
                 last_termination_reason = pod.status.container_statuses[key].last_state.terminated.reason if pod.status.container_statuses[key].last_state.terminated else ''
                 last_termination_exit_code = pod.status.container_statuses[key].last_state.terminated.exit_code if pod.status.container_statuses[key].last_state.terminated else ''
+                last_termination_finished_at = pod.status.container_statuses[key].last_state.terminated.finished_at if pod.status.container_statuses[key].last_state.terminated else ''
+                warning, emoji = last_termination_reason_warning(last_termination_reason)
+
+                if show_only_warnings and not warning:
+                    continue
 
                 data_output.append([
                     namespace,
@@ -68,9 +73,10 @@ def last_termination_reason_checker(args):
                     container.name,
                     last_termination_reason,
                     last_termination_exit_code,
-                    last_termination_reason_checker_emoji(last_termination_reason)
+                    last_termination_finished_at,
+                    emoji
                 ])
-    headers = ["Namespace", "Pod", "ContainerName", "LastTerminationReason", "LastTerminationExitCode", "Overall"]
+    headers = ["Namespace", "Pod", "ContainerName", "LastTerminationReason", "LastTerminationExitCode", "LastTerminationFinishedAt", "Overall"]
 
     table = datatable.ColoredTable()
     table.display_table(data_output, headers)
@@ -86,11 +92,13 @@ def main():
     parser_one = subparsers.add_parser('root_less_checker', help='Check rootless status of pods')
     parser_one.add_argument('--namespace', '-n', dest='namespace', type=str, help='Filter by namespace (optional, default to all namespaces)')
     parser_one.add_argument('--all', '-A', dest='all_namespaces', help='All namespaces', action='store_true')
+    parser_one.add_argument('--show-only-warnings', '-sow', dest='show_only_warnings', help='Show only warnings', action='store_true', default=False)
 
     # Sub-parser for the second command
     parser_two = subparsers.add_parser('last_termination_reason_checker', help='Check last termination reason of pods (ex. OOM reason). FS ❤️.')
     parser_two.add_argument('--namespace', '-n', dest='namespace', type=str, help='Filter by namespace (optional, default to all namespaces)')
     parser_two.add_argument('--all', '-A', dest='all_namespaces', help='All namespaces', action='store_true')
+    parser_two.add_argument('--show-only-warnings', '-sow', dest='show_only_warnings', help='Show only warnings', action='store_true', default=False)
 
     args = vars(parser.parse_args()) 
     if args['command'] == 'root_less_checker':
