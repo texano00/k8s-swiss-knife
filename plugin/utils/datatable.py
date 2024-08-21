@@ -2,6 +2,7 @@ import colorama
 from colorama import Fore, Style
 from tabulate import tabulate
 
+
 class ColoredTable:
     def __init__(self):
         # Initialize colorama
@@ -15,9 +16,12 @@ class ColoredTable:
         """Create a table with colored cells."""
         colored_data = []
         for row in data:
-            colored_row = [self.colored_cell(str(cell), Fore.YELLOW if idx % 2 == 0 else Fore.CYAN) for idx, cell in enumerate(row)]
+            colored_row = [
+                self.colored_cell(str(cell), Fore.YELLOW if idx % 2 == 0 else Fore.CYAN)
+                for idx, cell in enumerate(row)
+            ]
             colored_data.append(colored_row)
-        return tabulate(colored_data, headers=headers, tablefmt="grid")
+        return tabulate(colored_data, headers=headers, tablefmt="grid", stralign="center", numalign="center")
 
     def display_table(self, data, headers):
         """Create and print the colored table."""
