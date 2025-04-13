@@ -1,7 +1,9 @@
-import argparse, argcomplete
+import argparse
+import argcomplete
 import utils.kubernetes as k8s
 import utils.datatable as datatable
 from config import VERSION
+from commands.optimization_dashboard import optimization_dashboard
 
 
 def version():
@@ -278,6 +280,22 @@ def main():
         "--all", "-A", dest="all_namespaces", help="All namespaces", action="store_true"
     )
 
+    # sub-parser for the fourth command
+    parser_four = subparsers.add_parser(
+        "optimization_dashboard",
+        help="Show real-time optimization dashboard for the cluster, nodes, and namespaces",
+    )
+    parser_four.add_argument(
+        "--namespace",
+        "-n",
+        dest="namespace",
+        type=str,
+        help="Filter by namespace (optional, default to all namespaces)",
+    )
+    parser_four.add_argument(
+        "--all", "-A", dest="all_namespaces", help="All namespaces", action="store_true"
+    )
+
     argcomplete.autocomplete(parser)
     args = vars(parser.parse_args())
     if args["command"] == "version":
@@ -288,6 +306,8 @@ def main():
         healthcheck(args)
     elif args["command"] == "get_resource":
         get_resource(args)
+    elif args["command"] == "optimization_dashboard":
+        optimization_dashboard(args)
 
 
 if __name__ == "__main__":
