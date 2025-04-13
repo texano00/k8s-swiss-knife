@@ -51,6 +51,12 @@ Register binary with your shell’s completion framework by running `register-py
 eval "$(register-python-argcomplete kubectl-swissknife)"
 ```
 
+## optimization_dashboard
+```
+kubectl swissknife optimization_dashboard [-n <namespace>]
+```
+<img src=asset/optimization_dashboard.gif>
+
 # Development
 
 ```
