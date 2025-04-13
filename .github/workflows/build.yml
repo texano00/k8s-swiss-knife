@@ -15,6 +15,11 @@ on:
     paths:
     - 'plugin/**'
     - '.github/**'
+  pull_request:
+    branches: ['main']
+    paths:
+    - 'plugin/**'
+    - '.github/**'
 
 jobs:
   build-and-push-image:
@@ -42,32 +47,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
-    #   - name: Lint
-    #     run: |
-    #       pylint $(git ls-files '*.py') --fail-under=10
-          
+
+      - name: Lint
+        run: |
+          pylint $(git ls-files '*.py') --fail-under=8
 
       - name: Get version
         id: metadata
         run: |
-            version=$(grep "^VERSION" config.py | cut -d'=' -f2- | cut -d"'" -f2 )
-            echo "version=${version}" >> $GITHUB_OUTPUT
+          version=$(grep "^VERSION" config.py | cut -d'=' -f2- | cut -d"'" -f2 )
+          echo "version=${version}" >> $GITHUB_OUTPUT
 
       - name: Package
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
           pyinstaller -F --path venv/lib64/python3.10/site-packages kubectl-swissknife.py
-        
-
-    #   - uses: actions/upload-artifact@v4
-    #     with:
-    #         name: "kubectl-swissknife-${{ steps.metadata.outputs.version }}"
-    #         path: "${{ github.workspace }}/plugin/dist/kubectl-swissknife"
 
       - name: Release with Notes
+        if: ${{ github.event_name != 'pull_request' }}
         uses: softprops/action-gh-release@v2
         with:
-            tag_name: ${{ steps.metadata.outputs.version }}
-            files: ${{ github.workspace }}/plugin/dist/kubectl-swissknife
+          tag_name: ${{ steps.metadata.outputs.version }}
+          files: ${{ github.workspace }}/plugin/dist/kubectl-swissknife
         env:
-            GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
